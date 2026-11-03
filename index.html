@@ -61,7 +61,18 @@ function word(name){return words.find(w=>w[0]===name)}
 function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 function esc(s){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
 function ruleFor(w){return ({il:'IL används framför vanliga maskulina singularord som börjar på konsonant.',la:'LA används framför feminina singularord som börjar på konsonant.','l’':'L’ används framför vokal i singular.',lo:'LO används framför vissa maskulina singularord, till exempel s + konsonant och z.',i:'I används i vanlig maskulin plural.',le:'LE används i feminin plural.',gli:'GLI används i maskulin plural för LO-ord och maskulina L’-ord.'})[w[2]]}
-function renderMap(){let groups=[['🌱 Värld 1 – IL och LA',0,8],['🍄 Värld 2 – L’ och LO',8,16],['⭐ Värld 3 – Plural och final',16,TOTAL]];document.getElementById('map').innerHTML='<div class="map-intro">🗺️ Välj nivå</div>'+groups.map(([name,a,b])=>`<div class="world">${name}</div><div class="levels">${levels.slice(a,b).map((l,k)=>{let i=a+k;return `<button class="level ${current===i?'active':''} ${done.includes(i)?'done':''}" ${i>unlocked?'disabled':''} onclick="openLevel(${i})"><span>${i>unlocked?'🔒':done.includes(i)?'⭐':l.isWriting?'✏️':'❔'}</span>${i+1}. <small>${esc(l.title)}</small>${wins[i]?`<small>🏆 ${wins[i]} gånger</small>`:''}</button>`}).join('')}</div>`).join('');document.getElementById('status').textContent=`⭐ ${done.length} av ${TOTAL} nivåer klarade · 🏆 ${wins.reduce((a,b)=>a+b,0)} godkända omgångar`}
+function renderMap(){
+ let groups=[['🌱 Värld 1 – IL och LA',0,8],['🍄 Värld 2 – L’ och LO',8,16],['⭐ Värld 3 – Plural och final',16,TOTAL]];
+ let visible=groups.filter(([name,a,b])=>a<=unlocked).map(([name,a,b])=>{
+  let cards=levels.slice(a,Math.min(b,unlocked+1)).map((l,k)=>{
+   let i=a+k;
+   return `<button class="level ${current===i?'active':''} ${done.includes(i)?'done':''}" onclick="openLevel(${i})"><span>${done.includes(i)?'⭐':l.isWriting?'✏️':'❔'}</span>${i+1}. <small>${esc(l.title)}</small>${wins[i]?`<small>🏆 ${wins[i]} gånger</small>`:''}</button>`;
+  }).join('');
+  return `<div class="world">${name}</div><div class="levels">${cards}</div>`;
+ }).join('');
+ document.getElementById('map').innerHTML='<div class="map-intro">🗺️ Dina upplåsta nivåer</div>'+visible;
+ document.getElementById('status').textContent=`⭐ ${done.length} av ${TOTAL} nivåer klarade · 🏆 ${wins.reduce((a,b)=>a+b,0)} godkända omgångar`;
+}
 function goBack(){if(phase==='learn'){openLevel(Math.max(0,current-1))}else{phase='learn';render();window.scrollTo({top:0,behavior:'smooth'})}}
 function resetStars(){if(!confirm('Vill du nollställa alla stjärnor och börja om från nivå 1?'))return;unlocked=0;done=[];wins=Array(TOTAL).fill(0);lastSets={};current=0;phase='learn';persist();render();window.scrollTo({top:0,behavior:'smooth'})}
 function openLevel(i){if(i>unlocked)return;current=i;phase='learn';render();window.scrollTo({top:0,behavior:'smooth'})}
